@@ -3,7 +3,6 @@ const Cart = require('../models/cartModel');
 
 const addToCart = (req,res)=>{
     try {
-      console.log(req.params.id)
         cartHelper.addCart(req.params.id,res.locals.user._id)
         .then((response)=>{
             res.send(response)
@@ -20,11 +19,9 @@ const loadCart = async (req, res) => {
       const user = res.locals.user;
       const count = await cartHelper.getCartCount(user.id);
       let cartTotal = 0;
-  
       const total = await Cart.findOne({ user: user.id });
       if (total) {
         cartTotal = total.cartTotal;
-  
         const cart = await Cart.aggregate([
           {
             $match: { user: user.id }
@@ -60,17 +57,14 @@ const loadCart = async (req, res) => {
     }
   }; 
 
-  const updateQuantity = (req, res) => { 
-
-    let userId = res.locals.user._id;
-  
+  const updateQuantity = (req, res) => {
+    const userId = res.locals.user._id;
     cartHelper.updateQuantity(req.body).then(async (response) => {
       res.json(response);
     });
   }
 
   const deleteProduct = (req, res) => {
-  
     cartHelper.deleteProduct(req.body).then((response) => {
       res.send(response);
     });

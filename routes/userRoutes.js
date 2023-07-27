@@ -114,7 +114,10 @@ user_route.get('/error-404',userController.error404)
 user_route.get('/error-500',userController.error500)
 
 // invoice
-user_route.get('/invoice',orderController.downloadInvoice)
+user_route.get('/invoice',orderController.downloadInvoice) 
+
+// review
+user_route.post('/postReview',userController.postReview)
 
  
 
@@ -122,3 +125,4 @@ user_route.get('/invoice',orderController.downloadInvoice)
 
 
 module.exports = user_route;
+   

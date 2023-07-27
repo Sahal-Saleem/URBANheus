@@ -60,7 +60,6 @@ const editBannerHelper = async(bannerId) =>{
 const updateBannerHelper=async(texts, Image) => {
     return new Promise(async (resolve, reject) => {
          const bannerId = texts.id
-         console.log('bannerId',bannerId);
         let response = await Banner.updateOne(
           { _id: new mongoose.Types.ObjectId(bannerId) },
           {

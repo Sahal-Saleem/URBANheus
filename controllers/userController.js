@@ -7,6 +7,7 @@ const Category = require('../models/categoryModel')
 const couponHelper = require('../helpers/couponHelper')
 const orderHelper = require('../helpers/orderHelper')
 const Banner = require('../models/bannerModel')
+const Review = require ('../models/reviewModel');
 
 // jwt token
 
@@ -368,14 +369,9 @@ const categoryPage = async (req,res) =>{
 
     try{
         const category = await Category.find({ })
-
         const  categoryId = req.query.id
-
         const categories = await Category.find({ })
-         
         const product = await Product.find({ category:categoryId,  is_listed: true }).populate('category')
-        // console.log("products",products);
-        // console.log("categories",categories);
         res.render('categoryShop',{product,category })
     }
     catch(err){
@@ -396,9 +392,7 @@ const verifyCoupon = (req, res) => {
   const applyCoupon =  async (req, res) => {
     let couponCode = req.params.id 
     let userId = res.locals.user._id
-     console.log('hello');
     let total = await couponHelper.totalCheckOutAmount(userId) 
-    console.log("totalhelper :"+total);
     couponHelper.applyCoupon(couponCode, total).then((response) => {
         res.send(response)
     }) 
@@ -435,6 +429,20 @@ const error404 = async(req,res)=>{
     }
   }
 
+  //  review product
+  const postReview = async (req, res) => {
+    try {
+      const review = new Review({ name: req.body.name, message: req.body.message, proId: req.body.proId });
+      await review.save();
+      // Redirect with the product ID as a query parameter
+      res.redirect('/productPage?id=' + req.body.proId);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  
+
+
 
   
 
@@ -461,6 +469,7 @@ module.exports = {
     applyCoupon,
     error404,
     error403,
-    error500
+    error500,
+    postReview
     
 }

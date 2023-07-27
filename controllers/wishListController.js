@@ -27,7 +27,6 @@ const getWishList = async (req, res) => {
   const removeProductWishlist = async (req, res) => {
     let proId = req.body.proId;
     let wishListId = req.body.wishListId;
-    console.log('wishlist');
     wishListHelper
       .removeProductWishlist(proId, wishListId)
       .then((response) => {

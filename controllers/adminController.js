@@ -134,7 +134,6 @@ const orderListAdmin = async (req, res) => {
     const changeStatus = async(req,res)=>{
       const orderId = req.body.orderId
       const status = req.body.status
-      console.log(orderId)
       adminHelper.changeOrderStatus(orderId, status).then((response) => {
         console.log(response);
         res.json(response);
@@ -146,9 +145,7 @@ const orderListAdmin = async (req, res) => {
         const userId = req.body.userId
       
         const orderId = req.body.orderId
-        const status = req.body.status
-        console.log('status',orderId,userId);
-      
+        const status = req.body.status      
         adminHelper.cancelOrder(orderId,userId,status).then((response) => {
           res.send(response);
         });
@@ -158,9 +155,7 @@ const orderListAdmin = async (req, res) => {
         const orderId = req.body.orderId
 
         const status = req.body.status
-        const userId = req.body.userId 
-      console.log(req.body);
-      
+        const userId = req.body.userId       
         adminHelper.returnOrder(orderId,userId,status).then((response) => {
           res.send(response);
         });
@@ -200,9 +195,7 @@ const orderListAdmin = async (req, res) => {
               });
             
         } catch (error) {
-            console.log(error.message);
-            
-            
+            console.log(error.message);  
         }
        
       }
@@ -299,10 +292,8 @@ const orderListAdmin = async (req, res) => {
     
     
         const categoryCount  = await Category.find({}).count()
-    
         const productsCount  = await Product.find({}).count()
         const onlinePay = await adminHelper.getOnlineCount()
-    
         const latestorders = await Order.aggregate([
           {$unwind:"$orders"},
           {$sort:{
@@ -310,8 +301,6 @@ const orderListAdmin = async (req, res) => {
           }},
           {$limit:10}
         ]) 
-    
-    
           res.render('dashboard',{orders,productsCount,categoryCount,onlinePay,salesData,order:latestorders,salesCount})
       } catch (error) {
           console.log(error)

@@ -13,7 +13,6 @@ const applyCoupon =  async (req, res) => {
   let couponCode = req.params.id 
   let userId = res.locals.user._id
   let total = await couponHelper.totalCheckOutAmount(userId) 
-  // console.log("totalhelper :"+total);
   couponHelper.applyCoupon(couponCode, total).then((response) => {
       res.send(response)
   })

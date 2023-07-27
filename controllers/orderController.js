@@ -15,7 +15,6 @@ const checkOut = async (req,res)=>{
         const user = res.locals.user
         const total = await Cart.findOne({ user: user.id });
         const address = await Address.findOne({user:user._id}).lean().exec()
-        
         const cart = await Cart.aggregate([
             {
               $match: { user: user.id }
@@ -55,16 +54,13 @@ const changePrimary = async (req, res) => {
     try {
       const userId = res.locals.user._id
       const result = req.body.addressRadio;
-      console.log(result)
       const user = await Address.find({ user: userId.toString() });
-  
       const addressIndex = user[0].addresses.findIndex((address) =>
         address._id.equals(result)
       );
       if (addressIndex === -1) {
         throw new Error("Address not found");
       }
-  
       const removedAddress = user[0].addresses.splice(addressIndex, 1)[0];
       user[0].addresses.unshift(removedAddress);
   
@@ -72,7 +68,6 @@ const changePrimary = async (req, res) => {
         { user: userId },
         { $set: { addresses: user[0].addresses } }
       );
-  
       res.redirect("/checkOut");
     } catch (error) {
       console.log(error.message);
@@ -80,36 +75,37 @@ const changePrimary = async (req, res) => {
   };
 
   const postCheckOut  = async (req, res) => {
-    
     try {
-      console.log(req.body, "body");
-      let userId = res.locals.user;
-      let data = req.body;
-      let total = data.total;
+      const userId = res.locals.user._id;
+      const data = req.body;
       const couponCode = data.couponCode
       await couponHelper.addCouponToUser(couponCode, userId);
-
-
-      try {
-        const response = await orderHelper.placeOrder(data,userId);
-        console.log(response, "response");
-
+      try { 
+        const checkStock = await orderHelper.checkStock(userId)
+        if(checkStock){
         if (data.paymentOption === "cod") { 
+          const updatedStock = await orderHelper.updateStock(userId)
+          const response = await orderHelper.placeOrder(data,userId);
+          await Cart.deleteOne({ user:userId  })
           res.json({ codStatus: true });
-          await Cart.deleteOne({ user:userId._id  })
         } 
           else if (data.paymentOption === "wallet") {
+            const updatedStock = await orderHelper.updateStock(userId)
+            const response = await orderHelper.placeOrder(data,userId);
             res.json({ orderStatus: true, message: "order placed successfully" });
-            await Cart.deleteOne({ user:userId._id  })
-
+            await Cart.deleteOne({ user:userId  })
         }else if (data.paymentOption === "razorpay") {
-          const order = await orderHelper.generateRazorpay(userId._id,data.total);
-          console.log("ORDERRAZOR"+order);
-          res.json(order); 
+          const response = await orderHelper.placeOrder(data,userId);
+          const order = await orderHelper.generateRazorpay(userId,data.total);
+          res.json(order);
+         
         }
-       
+      }else{
+        await Cart.deleteOne({ user:userId  })
+        res.json({ status: 'OrderFailed' });
+      }
+  
       } catch (error) {
-        console.log("got here ----");
         console.log({ error: error.message }, "22");
         res.json({ status: false, error: error.message });
       }
@@ -119,22 +115,11 @@ const changePrimary = async (req, res) => {
     }
   }
 
-  // const orderList  = async(req,res)=>{
-  //   try {
-  //     const user  = res.locals.user
-  //     const order = await Order.findOne({user:user._id})
-  //     res.render('orderList',{order:order.orders})
-  //   } catch (error) {
-      
-  //   }
-  // }
-
   const orderList = async (req, res) => {
     try {
       const user = res.locals.user;
       const order = await Order.findOne({ user: user._id }).sort({ createdAt: -1 });
       // The "createdAt" field is assumed to represent the creation date of the order.
-  
       res.render('orderList', { order: order.orders });
     } catch (error) {
       // Handle any potential errors
@@ -142,16 +127,13 @@ const changePrimary = async (req, res) => {
     }
   };
   
-
   const orderDetails = async (req,res)=>{
     try {
       const user = res.locals.user
       const id = req.query.id
-      // console.log(id);
       orderHelper.findOrder(id, user._id).then((orders) => {
         const address = orders[0].shippingAddress
         const products = orders[0].productDetails 
-        // console.log(products[0].productName)
         res.render('orderDetails',{orders,address,products})
       });    
     } catch (error) {
@@ -164,21 +146,17 @@ const changePrimary = async (req, res) => {
     const orderId = req.body.orderId
     const status = req.body.status
     orderHelper.cancelOrder(orderId, status).then((response) => {
-      // console.log(response);
       res.send(response);
     });
   
   
   }
 
-  const verifyPayment =  (req, res) => {
-    console.log("VERIFYPAYMENT",req.body);
-  
+  const verifyPayment =  (req, res) => {  
     orderHelper.verifyPayment(req.body).then(() => {
       orderHelper
         .changePaymentStatus(res.locals.user._id, req.body.order.receipt)
         .then(() => {
-          // console.log(req.body);
           res.json({ status: true });
         })
         .catch((err) => {
@@ -194,13 +172,10 @@ const changePrimary = async (req, res) => {
     try {
       const id = req.query.id
       userId = res.locals.user._id;
-  
       result = await orderHelper.findOrder(id, userId);
-      console.log(result);
       const date = result[0].createdAt.toLocaleDateString();
       const product = result[0].productDetails;
 
-  
       const order = {
         id: id,
         total:parseInt( result[0].totalPrice),

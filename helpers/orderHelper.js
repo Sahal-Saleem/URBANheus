@@ -98,7 +98,6 @@ const placeOrder = (data,user)=>{
                 cancelStatus:'false',
                 createdAt:new Date()
               };
-              // console.log(orderData)
               const order = await Order.findOne({ user:user._id  });
               if (order) {
                 await Order.updateOne(
@@ -118,15 +117,7 @@ const placeOrder = (data,user)=>{
                     resolve(response);
                   });
                 }
-           
-
-
-
-        
-        });
-        
-        
-            
+        });     
     } catch (error) {
         console.log(error.message)
         
@@ -278,7 +269,6 @@ const findOrderAdmin  = (orderId) => {
 
         console.log('order',options);
         instance.orders.create(options, function (err,order) {
-          // console.log('generate razor',order);
           if (err) {
             console.log('error entered');
             console.log(err);
@@ -293,7 +283,6 @@ const findOrderAdmin  = (orderId) => {
   }
 
   const verifyPayment =  (details) => {
-    console.log("details"+details.payment.razorpay_payment_id);
     try {
       let key_secret = 'YZm54Pn1KBeukGYFYjZCLaR7';
       return new Promise((resolve, reject) => {
@@ -318,20 +307,20 @@ const findOrderAdmin  = (orderId) => {
   }
   
   // change payment status
-  const changePaymentStatus =  (userId, orderId) => {
+  const changePaymentStatus =  (userId, orderId,razorpayId) => {
     try {
       return new Promise(async (resolve, reject) => {
-        // const result = 
         await Order.updateOne(
           { "orders._id": new ObjectId(orderId) },
           {
             $set: {
               "orders.$.orderStatus": "Placed",
               "orders.$.paymentStatus": "Success",
+              "orders.$.razorpayId": razorpayId
             },
           }
         ),
-        // console.log('result',result);
+          await updateStock(userId)
           Cart.deleteMany({ user: userId }).then(() => {
             resolve();
           });
@@ -340,6 +329,47 @@ const findOrderAdmin  = (orderId) => {
       console.log(error.message);
     }
   }
+  
+
+  const updateStock = async(userId)=>{
+
+    const products = await Cart.findOne({user:userId})
+    const cartProducts = products.cartItems
+    for(const cartProduct of cartProducts ){
+      const productId = cartProduct.productId;
+      const quantity = cartProduct.quantity;
+    
+      const product = await Product.findOne({_id:productId})
+    
+      if(product.stock < cartProduct.quantity ){
+        return false
+      }
+    
+      await Product.updateOne({_id:productId},
+        {$inc:{stock:-quantity}}
+        )
+    
+    }
+    return true
+    }
+    
+    
+    const checkStock = async(userId)=>{
+    
+      const products = await Cart.findOne({user:userId})
+      const cartProducts = products.cartItems
+      for(const cartProduct of cartProducts ){
+        const productId = cartProduct.productId;
+      
+        const product = await Product.findOne({_id:productId})
+      
+        if(product.stock < cartProduct.quantity ){
+          return false
+        }
+      
+      }
+      return true
+      }
 
   
 
@@ -353,5 +383,7 @@ module.exports = {
     totalCheckOutAmount,
     generateRazorpay,
     changePaymentStatus,
-    verifyPayment
+    verifyPayment,
+    updateStock,
+    checkStock
 }

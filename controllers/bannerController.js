@@ -5,14 +5,9 @@ const bannerList = async(req,res)=>{
 
     try{ 
         bannerHelper.bannerListHelper().then((response)=> {
-
-            // console.log('banners',response);
-
             res.render('bannerList',{banners:response})
-
-        }) 
-        
-    }
+        })  
+    } 
     catch(error){
         console.log(error);
     }
@@ -28,9 +23,7 @@ const addBannerGet = async(req,res)=>{
 }
 
 const addBannerPost = async(req,res)=>{
-    console.log("addBannerPost");
     bannerHelper.addBannerHelper(req.body, req.file.filename).then(( response) => {
-        // console.log('res',response);
         if (response) {
             res.redirect("/admin/bannerList");
         } else {

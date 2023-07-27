@@ -4,14 +4,15 @@
 const Product = require('../models/productModel')
 const Category = require('../models/categoryModel')
 const productHelper = require('../helpers/productHelper')
+const Review = require('../models/reviewModel')
 const path = require('path');
+const mongoose = require('mongoose')
 
 // add product display
 
 const loadProducts = async (req, res) => {
     try {
       let categories = await Category.find({});
-  
       res.render("addProduct", { category: categories });
     } catch (error) {
       console.log(error.message);
@@ -25,8 +26,6 @@ const createProduct = async (req, res) => {
     const filesArray = Object.values(req.files).flat();
     const images = filesArray.map((file) => file.filename);
     let categories = await Category.find({});
-  
-  
     const newProduct = new Product({
       name,
       description,
@@ -57,7 +56,6 @@ const createProduct = async (req, res) => {
 
 const Products = async(req,res)=>{
     try {
-
       const product = await Product.find({})
       res.render('productList',{product:product})    
     } catch (error) {
@@ -72,9 +70,7 @@ const Products = async(req,res)=>{
   const unListProduct = async(req,res)=>{
     try {
       await productHelper.unListProduct(req.query.id)
-
         res.redirect('/admin/product')
-        
     } catch (error) {
         console.log(error.message);
     }
@@ -100,9 +96,7 @@ const Products = async(req,res)=>{
           const category = productData[0].category;
           const productCategory = await Category.find({ _id: category });
           const allCategory = await Category.find();
-      
-          
-      
+    
           res.render("updateProduct", {
             productData,
             productCategory,
@@ -128,9 +122,7 @@ const Products = async(req,res)=>{
           const productData = await Product.findById(id);
       
           // Check if new images are provided
-          const updatedImages = images.length > 0 ? images : productData.images;
-          console.log(updatedImages);
-      
+          const updatedImages = images.length > 0 ? images : productData.images;      
           const update = await Product.updateOne(
             { _id: id },
             {
@@ -151,17 +143,18 @@ const Products = async(req,res)=>{
           console.log(error.message);
         }
       };
-
+   
       const productPage = async ( req, res ) => {
         try{
             const id = req.query.id
-            const product = await Product.findOne({ _id : id }).populate('category').lean().exec()
-            res.render('product',{product : product})
+            const product = await Product.findOne({ _id : id }).populate('category').lean().exec();
+            const review = await Review.find({proId:id})
+            res.render('product',{product : product, review:review})
         }
-        catch(error){
-            console.log(error);
+        catch(error){ 
+            console.log(error); 
             res.send({ success: false, error: error.message });
-     }
+     } 
     
     }
     

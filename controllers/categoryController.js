@@ -21,7 +21,6 @@ const loadAddCategory = async(req,res)=>{
 
 const createCategory = async(req, res)=>{
     try {
-        console.log("create ");
       const existingCategory = await Category.findOne({name:req.body.name.toLowerCase()})
       if(existingCategory){
         return res.render("addCategory",{message:"Category already exists"})
@@ -29,7 +28,6 @@ const createCategory = async(req, res)=>{
       if (!req.body.name || req.body.name.trim().length === 0) {
         return res.render("addCategory", { message: "Name is required" });
     }
-    console.log(req.body)
        await categoryHelper.createCategory(req.body)
       res.redirect('/admin/category')
     } catch (error) {
@@ -53,7 +51,6 @@ const createCategory = async(req, res)=>{
         // Update a category
   async function updateCategory(req, res) {
     try {
-      console.log(req.body);
       const categoryId  = req.body.id
       await categoryHelper.updateCategory(categoryId,req.body)
       res.redirect('/admin/category')

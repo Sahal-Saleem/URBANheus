@@ -55,13 +55,9 @@ const generatorCouponCode =  () => {
               },
             }
           )
-
           .then((couponAdded) => {
             resolve(couponAdded);
-
           });
-        console.log(updated);
-
       });
 
 
@@ -75,7 +71,6 @@ const generatorCouponCode =  () => {
          Coupon.find({ couponCode: couponCode }).then(
           async(couponExist) => {
             if (couponExist.length>0) {
-              console.log(couponExist);
               if (new Date(couponExist[0].validity) - new Date() > 0) {
                 let usersCoupon = await User.findOne({
                   _id: userId,

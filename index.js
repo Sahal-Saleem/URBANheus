@@ -1,5 +1,5 @@
 const mongoose=require("mongoose");
-mongoose.connect("mongodb://localhost:27017/user_management");
+mongoose.connect("mongodb+srv://sahalsaleem2000:R9Ij2yDR3MVx3Pbb@urbanhues.pzsxifc.mongodb.net/URBANhues");
 const path = require('path');
 const cookieParser = require('cookie-parser');
 

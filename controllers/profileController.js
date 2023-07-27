@@ -121,10 +121,7 @@ const editAddress = async (req, res) => {
 
 const deleteAddress = async (req, res) => {
     const userId = res.locals.user._id;
-    const addId = req.query.id;
-    console.log("user" + userId);
-    console.log(addId);
-  
+    const addId = req.query.id;  
     const deleteobj = await Address.updateOne(
       { user: userId }, // Match the user based on the user ID
       { $pull: { addresses: { _id: addId } } } // Remove the object with matching _id from addresses array
@@ -138,9 +135,7 @@ const deleteAddress = async (req, res) => {
 const editInfo = async (req, res) => {
     try {
       userId = res.locals.user._id;
-      console.log("userid:" + userId);
       const { fname, lname, email, mobile } = req.body;
-  
       const result = await User.updateOne(
         { _id: userId }, // Specify the user document to update based on the user ID
         { $set: { fname, lname, email, mobile } } // Set the new field values
@@ -157,15 +152,11 @@ const editInfo = async (req, res) => {
     try {
       const newPass = req.body.newPassword;
       userId = res.locals.user._id;
-      
-  
         const spassword = await securePassword(newPass);
-  
         const result = await User.updateOne(
           { _id: userId }, 
           { $set: { password: spassword } } 
         );
-        console.log(result);
         res.redirect('/profile')
       
     } catch (error) {
@@ -175,7 +166,6 @@ const editInfo = async (req, res) => {
 
   const checkOutAddress = async (req, res) => {
     try {
-      console.log('SUBMIT')
       const userId = res.locals.user._id;
       const name = req.body.name;
       const mobileNumber = req.body.mno;
